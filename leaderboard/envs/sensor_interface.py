@@ -148,6 +148,9 @@ class CallBack(object):
             self._parse_gnss_cb(data, self._tag)
         elif isinstance(data, carla.libcarla.IMUMeasurement):
             self._parse_imu_cb(data, self._tag)
+        elif isinstance(data, carla.libcarla.ObstacleDetectionEvent):
+            print("update data =", self._tag)
+            self._parse_osb_cb(data, self._tag)
         elif isinstance(data, GenericMeasurement):
             self._parse_pseudosensor(data, self._tag)
         else:
@@ -191,6 +194,18 @@ class CallBack(object):
                          ], dtype=np.float64)
         self._data_provider.update_sensor(tag, array, imu_data.frame)
 
+    def _parse_osb_cb(self, obstacle_data, tag):
+        print(type(obstacle_data))
+        print(obstacle_data)
+        print(obstacle_data.actor)
+        print(obstacle_data.other_actor)
+        print(obstacle_data.distance)
+        array = np.array([obstacle_data.actor.id,
+                          obstacle_data.other_actor.id,
+                          obstacle_data.distance,
+                         ], dtype=np.float64)
+        self._data_provider.update_sensor(tag, array, obstacle_data.frame)
+
     def _parse_pseudosensor(self, package, tag):
         self._data_provider.update_sensor(tag, package.data, package.frame)
 
@@ -203,6 +218,7 @@ class SensorInterface(object):
 
         # Only sensor that doesn't get the data on tick, needs special treatment
         self._opendrive_tag = None
+        self._obstacle_tag = None
 
     def register_sensor(self, tag, sensor_type, sensor):
         if tag in self._sensors_objects:
@@ -212,6 +228,8 @@ class SensorInterface(object):
 
         if sensor_type == 'sensor.opendrive_map': 
             self._opendrive_tag = tag
+        elif sensor_type == 'sensor.other.obstacle': 
+            self._obstacle_tag = tag
 
     def update_sensor(self, tag, data, frame):
         if tag not in self._sensors_objects:
@@ -223,16 +241,36 @@ class SensorInterface(object):
         """Read the queue to get the sensors data"""
         try:
             data_dict = {}
+
+            # expecting between
+            # len(self._sensors_objects.keys()) - 2
+            # and
+            # len(self._sensors_objects.keys())
+            # data elements
             while len(data_dict.keys()) < len(self._sensors_objects.keys()):
-                # Don't wait for the opendrive sensor
-                if self._opendrive_tag and self._opendrive_tag not in data_dict.keys() \
-                        and len(self._sensors_objects.keys()) == len(data_dict.keys()) + 1:
+                passing = 0
+                # Don't wait for the slow/event opendrive sensor
+                # NOTE it is possible that those sensor data end up at the end of the queue.
+                # In this case they will not be read this tick and discarded next tick.
+                # In practice if seems to happen 4% of the time for the opendrive sensor.
+                if self._opendrive_tag and self._opendrive_tag not in data_dict.keys():
+                    passing += 1
+                if self._obstacle_tag and self._obstacle_tag not in data_dict.keys():
+                    passing += 1
+                if len(self._sensors_objects.keys()) == len(data_dict.keys()) + passing:
                     break
 
+                # print("self._data_buffers qsize =", self._data_buffers.qsize())
                 sensor_data = self._data_buffers.get(True, self._queue_timeout)
+                # print("sensor_data =", sensor_data[0])
                 if sensor_data[1] != frame:
+                    # if sensor_data[0] == self._opendrive_tag or sensor_data[0] == self._obstacle_tag:
+                    if sensor_data[0] == self._obstacle_tag:
+                        print("discarded sensor_data =", sensor_data[0])
                     continue
                 data_dict[sensor_data[0]] = ((sensor_data[1], sensor_data[2]))
+            
+            # print(f"estimated {self._data_buffers.qsize()} elements left in the queue")
 
         except Empty:
             raise SensorReceivedNoData("A sensor took too long to send their data")

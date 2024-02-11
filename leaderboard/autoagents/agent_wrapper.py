@@ -61,6 +61,9 @@ def validate_sensor_configuration(sensors, agent_track, selected_track):
     """
     if Track(selected_track) != agent_track:
         raise SensorConfigurationInvalid("You are submitting to the wrong track [{}]!".format(Track(selected_track)))
+    # There is no sensor limitation in the ALL track.
+    if agent_track == Track.ALL:
+        return
 
     sensor_count = {}
     sensor_ids = []
@@ -209,6 +212,22 @@ class AgentWrapper(object):
             sensor_rotation = carla.Rotation(pitch=sensor_spec['pitch'],
                                              roll=sensor_spec['roll'],
                                              yaw=sensor_spec['yaw'])
+            
+        elif type_ == 'sensor.other.obstacle':
+            attributes['distance'] = str(sensor_spec['distance'])
+            attributes['hit_radius'] = str(sensor_spec['hit_radius'])
+            attributes['only_dynamics'] = str(sensor_spec['only_dynamics'])
+            attributes['debug_linetrace'] = str(sensor_spec['debug_linetrace'])
+            # attributes['sensor_tick'] = str(sensor_spec['sensor_tick'])
+
+            sensor_location = carla.Location(x=sensor_spec['x'],
+                                             y=sensor_spec['y'],
+                                             z=sensor_spec['z'])
+            sensor_rotation = carla.Rotation(pitch=sensor_spec['pitch'],
+                                             roll=sensor_spec['roll'],
+                                             yaw=sensor_spec['yaw'])
+            
+
         sensor_transform = carla.Transform(sensor_location, sensor_rotation)
 
         return type_, id_, sensor_transform, attributes
