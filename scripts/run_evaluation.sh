@@ -10,6 +10,7 @@ python3 ${LEADERBOARD_ROOT}/leaderboard/leaderboard_evaluator.py \
 --agent=${TEAM_AGENT} \
 --agent-config=${TEAM_CONFIG} \
 --debug=${DEBUG_CHALLENGE} \
+--spectator-mode=${SPECTATOR_MODE} \
 --record=${RECORD_PATH} \
 --timeout=${TIMEOUT} \
 --resume=${RESUME}

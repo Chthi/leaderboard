@@ -149,7 +149,7 @@ class CallBack(object):
         elif isinstance(data, carla.libcarla.IMUMeasurement):
             self._parse_imu_cb(data, self._tag)
         elif isinstance(data, carla.libcarla.ObstacleDetectionEvent):
-            print("update data =", self._tag)
+            # print("update data =", self._tag)
             self._parse_osb_cb(data, self._tag)
         elif isinstance(data, GenericMeasurement):
             self._parse_pseudosensor(data, self._tag)
@@ -195,11 +195,6 @@ class CallBack(object):
         self._data_provider.update_sensor(tag, array, imu_data.frame)
 
     def _parse_osb_cb(self, obstacle_data, tag):
-        print(type(obstacle_data))
-        print(obstacle_data)
-        print(obstacle_data.actor)
-        print(obstacle_data.other_actor)
-        print(obstacle_data.distance)
         array = np.array([obstacle_data.actor.id,
                           obstacle_data.other_actor.id,
                           obstacle_data.distance,
@@ -253,6 +248,7 @@ class SensorInterface(object):
                 # NOTE it is possible that those sensor data end up at the end of the queue.
                 # In this case they will not be read this tick and discarded next tick.
                 # In practice if seems to happen 4% of the time for the opendrive sensor.
+                # 1% of the time for the obstacle sensor.
                 if self._opendrive_tag and self._opendrive_tag not in data_dict.keys():
                     passing += 1
                 if self._obstacle_tag and self._obstacle_tag not in data_dict.keys():
@@ -265,8 +261,8 @@ class SensorInterface(object):
                 # print("sensor_data =", sensor_data[0])
                 if sensor_data[1] != frame:
                     # if sensor_data[0] == self._opendrive_tag or sensor_data[0] == self._obstacle_tag:
-                    if sensor_data[0] == self._obstacle_tag:
-                        print("discarded sensor_data =", sensor_data[0])
+                    # if sensor_data[0] == self._obstacle_tag:
+                        # print("discarded sensor_data =", sensor_data[0])
                     continue
                 data_dict[sensor_data[0]] = ((sensor_data[1], sensor_data[2]))
             

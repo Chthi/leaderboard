@@ -45,7 +45,7 @@ class ScenarioManager(object):
     4. If needed, cleanup with manager.stop_scenario()
     """
 
-    def __init__(self, timeout, statistics_manager, debug_mode=0):
+    def __init__(self, timeout, statistics_manager, debug_mode=0, spectator_mode="bev"):
         """
         Setups up the parameters, which will be filled at load_scenario()
         """
@@ -73,6 +73,8 @@ class ScenarioManager(object):
         self._scenario_thread = None
 
         self._statistics_manager = statistics_manager
+
+        self.spectator_mode = spectator_mode
 
         # Use the callback_id inside the signal handler to allow external interrupts
         signal.signal(signal.SIGINT, self.signal_handler)
@@ -222,8 +224,21 @@ class ScenarioManager(object):
                 self._running = False
 
             ego_trans = self.ego_vehicles[0].get_transform()
-            self._spectator.set_transform(carla.Transform(ego_trans.location + carla.Location(z=70),
-                                                          carla.Rotation(pitch=-90)))
+            if self.spectator_mode == "bev":
+                # same altitude
+                self._spectator.set_transform(carla.Transform(carla.Location(x=ego_trans.location.x, y=ego_trans.location.y, z=70),
+                                                            carla.Rotation(pitch=-90)))
+            elif self.spectator_mode == "zoom":
+                # variable altitude
+                # -+ 0.1 to slowly zoom in/out
+                # self._spectator.set_transform(carla.Transform(ego_trans.location + carla.Location(z=before - 0.05), carla.Rotation(pitch=-90)))
+                self._spectator.set_transform(carla.Transform(carla.Location(x=ego_trans.location.x, y=ego_trans.location.y, z=self._spectator.get_location().z),
+                                                              carla.Rotation(pitch=-90)))
+            elif self.spectator_mode == "third_person":
+                # behind the vehicle
+                # sr = self._spectator.get_transform().rotation
+                self._spectator.set_transform(carla.Transform(carla.Location(x=ego_trans.location.x, y=ego_trans.location.y, z=7) - 1.1*self.ego_vehicles[0].get_velocity(),
+                                                            carla.Rotation(pitch=-32, yaw=ego_trans.rotation.yaw, roll=ego_trans.rotation.roll)))
 
     def get_running_status(self):
         """

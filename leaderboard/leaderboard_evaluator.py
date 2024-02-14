@@ -90,7 +90,7 @@ class LeaderboardEvaluator(object):
         self.module_agent = importlib.import_module(module_name)
 
         # Create the ScenarioManager
-        self.manager = ScenarioManager(args.timeout, self.statistics_manager, args.debug)
+        self.manager = ScenarioManager(args.timeout, self.statistics_manager, args.debug, args.spectator_mode)
 
         # Time control for summary purposes
         self._start_time = GameTime.get_time()
@@ -434,6 +434,8 @@ def main():
                         help='Seed used by the TrafficManager (default: 0)')
     parser.add_argument('--debug', type=int,
                         help='Run with debug output', default=0)
+    parser.add_argument('--spectator-mode', type=str, choices=["bev", "zoom", "third_person", "free"],
+                        help='Spectator mode', default="bev")
     parser.add_argument('--record', type=str, default='',
                         help='Use CARLA recording feature to create a recording of the scenario')
     parser.add_argument('--timeout', default=300.0, type=float,
