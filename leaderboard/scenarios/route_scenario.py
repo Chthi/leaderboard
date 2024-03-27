@@ -90,6 +90,8 @@ class RouteScenario(BasicScenario):
         if ego_vehicle is None:
             raise ValueError("Shutting down, couldn't spawn the ego vehicle")
 
+        self.debug_background_activity = debug_mode > 1
+
         if debug_mode>0:
             self._draw_waypoints(self.route, vertical_shift=0.1, size=0.1, downsample=10)
 
@@ -401,7 +403,7 @@ class RouteScenario(BasicScenario):
         self.scenario_triggerer = scenario_triggerer
 
         # Add the Background Activity
-        behavior.add_child(BackgroundBehavior(self.ego_vehicles[0], self.route, name="BackgroundActivity"))
+        behavior.add_child(BackgroundBehavior(self.ego_vehicles[0], self.route, debug=self.debug_background_activity, name="BackgroundActivity"))
 
         behavior.add_children(scenario_behaviors)
         return behavior
