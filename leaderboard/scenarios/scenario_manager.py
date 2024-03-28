@@ -226,19 +226,29 @@ class ScenarioManager(object):
             ego_trans = self.ego_vehicles[0].get_transform()
             if self.spectator_mode == "bev":
                 # same altitude
-                self._spectator.set_transform(carla.Transform(carla.Location(x=ego_trans.location.x, y=ego_trans.location.y, z=70),
-                                                            carla.Rotation(pitch=-90)))
+                self._spectator.set_transform(carla.Transform(
+                    carla.Location(x=ego_trans.location.x, y=ego_trans.location.y, z=70),
+                    carla.Rotation(pitch=-90)))
             elif self.spectator_mode == "zoom":
                 # variable altitude
                 # -+ 0.1 to slowly zoom in/out
                 # self._spectator.set_transform(carla.Transform(ego_trans.location + carla.Location(z=before - 0.05), carla.Rotation(pitch=-90)))
-                self._spectator.set_transform(carla.Transform(carla.Location(x=ego_trans.location.x, y=ego_trans.location.y, z=self._spectator.get_location().z),
-                                                              carla.Rotation(pitch=-90)))
-            elif self.spectator_mode == "third_person":
+                self._spectator.set_transform(carla.Transform(
+                    carla.Location(x=ego_trans.location.x, y=ego_trans.location.y, z=self._spectator.get_location().z),
+                    carla.Rotation(pitch=-90)))
+            elif self.spectator_mode == "3pers":
                 # behind the vehicle
                 # sr = self._spectator.get_transform().rotation
-                self._spectator.set_transform(carla.Transform(carla.Location(x=ego_trans.location.x, y=ego_trans.location.y, z=7) - 1.1*self.ego_vehicles[0].get_velocity(),
-                                                            carla.Rotation(pitch=-32, yaw=ego_trans.rotation.yaw, roll=ego_trans.rotation.roll)))
+                self._spectator.set_transform(carla.Transform(
+                    carla.Location(x=ego_trans.location.x, y=ego_trans.location.y, z=7) - 1.1*self.ego_vehicles[0].get_velocity(),
+                    carla.Rotation(pitch=-32, yaw=ego_trans.rotation.yaw, roll=ego_trans.rotation.roll)))
+                
+            elif self.spectator_mode == "1pers":
+                # in the vehicle
+                self._spectator.set_transform(carla.Transform(
+                    carla.Location(x=ego_trans.location.x, y=ego_trans.location.y, z=ego_trans.location.z + 1.7),
+                    carla.Rotation(pitch=ego_trans.rotation.pitch - 5, yaw=ego_trans.rotation.yaw, roll=ego_trans.rotation.roll)))
+
 
     def get_running_status(self):
         """

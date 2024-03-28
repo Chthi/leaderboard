@@ -434,7 +434,7 @@ def main():
                         help='Seed used by the TrafficManager (default: 0)')
     parser.add_argument('--debug', type=int,
                         help='Run with debug output', default=0)
-    parser.add_argument('--spectator-mode', type=str, choices=["bev", "zoom", "third_person", "free"],
+    parser.add_argument('--spectator-mode', type=str, choices=["bev", "zoom", "3pers", "1pers", "free"],
                         help='Spectator mode', default="bev")
     parser.add_argument('--record', type=str, default='',
                         help='Use CARLA recording feature to create a recording of the scenario')
